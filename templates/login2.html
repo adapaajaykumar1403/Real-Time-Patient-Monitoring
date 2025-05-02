@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Login</title>
+    <style>
+        :root {
+            --medical-blue: #005b96;
+            --medical-light-blue: #e1f5fe;
+            --medical-alert: #d32f2f;
+            --medical-warning: #ffa000;
+            --medical-safe: #388e3c;
+            --medical-dark: #263238;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--medical-dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .login-icon {
+            font-size: 2.5rem;
+            color: var(--medical-light-blue);
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--medical-blue);
+            background-color: rgba(255,255,255,0.15);
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--medical-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #0077b6;
+        }
+        
+        .back-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .back-link a {
+            color: var(--medical-light-blue);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: var(--medical-alert);
+            background-color: rgba(31, 15, 15, 0.2);
+            border: 1px solid var(--medical-alert);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="login-container" id="login-container">
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h1>PATIENT LOGIN</h1>
+            <p>Access Monitoring Dashboard</p>
+        </div>
+        
+        <div class="error-message" id="error-message"></div>
+        
+        <form method="POST" id="login-form">
+            <div class="form-group">
+                <label for="_id">Patient ID:</label>
+                <input type="text" id="_id" name="_id" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
+        </form>
+        
+        <div class="back-link">
+            <a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('login-form');
+            const errorMessage = document.getElementById('error-message');
+            const loginContainer = document.getElementById('login-container');
+            
+            // Check if there's an error message from the server
+            const urlParams = new URLSearchParams(window.location.search);
+            const loginError = urlParams.get('error');
+            
+            if (loginError) {
+                showError('Login failed: Invalid Patient ID or Name.');
+                shakeForm();
+            }
+            
+            // Patient ID validation
+            const idInput = document.getElementById('_id');
+            idInput.addEventListener('input', function() {
+                if (!/^[a-zA-Z0-9]{6,12}$/.test(this.value)) {
+                    this.setCustomValidity('Patient ID should be 6-12 alphanumeric characters');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+            
+            // Name validation
+            const nameInput = document.getElementById('name');
+            nameInput.addEventListener('input', function() {
+                if (!/^[a-zA-Z\s]{3,50}$/.test(this.value)) {
+                    this.setCustomValidity('Please enter a valid name (3-50 letters)');
+                } else {
+                    this.setCustomValidity('');
+                    // Capitalize first letter of each word
+                    this.value = this.value.replace(/\b\w/g, l => l.toUpperCase());
+                }
+            });
+            
+            // Form submission handler
+            form.addEventListener('submit', function(e) {
+                // Clear any previous error
+                hideError();
+                
+                // Simple client-side validation
+                if (!idInput.value.trim() || !nameInput.value.trim()) {
+                    e.preventDefault();
+                    showError('Please fill all fields correctly.');
+                    shakeForm();
+                }
+            });
+            
+            // Enter key to submit form
+            form.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    form.submit();
+                }
+            });
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+            
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+            
+            function shakeForm() {
+                loginContainer.classList.add('shake');
+                
+                // Remove the shake class after animation completes
+                setTimeout(() => {
+                    loginContainer.classList.remove('shake');
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

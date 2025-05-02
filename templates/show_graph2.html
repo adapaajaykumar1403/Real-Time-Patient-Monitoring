@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Risk Trend</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+    <style>
+        :root {
+            --medical-blue: #005b96;
+            --medical-light-blue: #e1f5fe;
+            --medical-alert: #d32f2f;
+            --medical-warning: #ffa000;
+            --medical-safe: #388e3c;
+            --medical-dark: #263238;
+            --medical-gray: #607d8b;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--medical-dark);
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .monitor-header {
+            background-color: var(--medical-blue);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .patient-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .patient-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--medical-light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--medical-blue);
+        }
+        
+        .patient-details h2 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        
+        .patient-details p {
+            margin: 3px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .monitor-time {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .graph-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .graph-panel {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            margin: 0;
+            color: var(--medical-light-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .current-risk {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .risk-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .risk-normal {
+            color: var(--medical-safe);
+        }
+        
+        .risk-warning {
+            color: var(--medical-warning);
+        }
+        
+        .risk-critical {
+            color: var(--medical-alert);
+        }
+        
+        .risk-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .status-normal {
+            background-color: rgba(56, 142, 60, 0.2);
+            color: var(--medical-safe);
+            border: 1px solid var(--medical-safe);
+        }
+        
+        .status-warning {
+            background-color: rgba(255, 160, 0, 0.2);
+            color: var(--medical-warning);
+            border: 1px solid var(--medical-warning);
+        }
+        
+        .status-critical {
+            background-color: rgba(211, 47, 47, 0.2);
+            color: var(--medical-alert);
+            border: 1px solid var(--medical-alert);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .action-panel {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        
+        .action-button {
+            padding: 10px 20px;
+            background-color: var(--medical-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-button:hover {
+            background-color: #0077b6;
+        }
+        
+        .action-button.secondary {
+            background-color: var(--medical-gray);
+        }
+        
+        .action-button.secondary:hover {
+            background-color: #546e7a;
+        }
+        
+        .last-updated {
+            text-align: right;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 15px;
+        }
+        
+        .alert-flash {
+            animation: alertFlash 1s infinite alternate;
+        }
+        
+        @keyframes alertFlash {
+            from {
+                box-shadow: 0 0 5px rgba(211, 47, 47, 0);
+            }
+            to {
+                box-shadow: 0 0 20px rgba(211, 47, 47, 0.7);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .panel-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .current-risk {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .chart-container {
+                height: 250px;
+            }
+            
+            .action-panel {
+                flex-direction: column;
+            }
+            
+            .action-button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="monitor-header">
+        <div class="patient-info">
+            <div class="patient-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="patient-details">
+                <h2>{{ patient.name }}</h2>
+                <p>ID: {{ patient._id }} | Age: {{ patient.age }} | {{ patient.gender }}</p>
+                <span class="patient-disease">{{ patient.disease | capitalize }}</span>
+            </div>
+        </div>
+        <div class="monitor-time" id="current-time">--:--:--</div>
+    </div>
+    
+    <div class="graph-container">
+        <div class="graph-panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="fas fa-chart-line"></i> Real-Time Risk Trend</h2>
+                <div class="current-risk">
+                    <div class="risk-value" id="current-risk-value">--</div>
+                    <div class="risk-status" id="current-risk-status">STATUS</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="riskChart"></canvas>
+            </div>
+            
+            <div class="last-updated" id="last-updated">Last updated: --:--:--</div>
+            
+            <div class="action-panel">
+                <a href="/dashboard" class="action-button secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <button class="action-button secondary" id="mute-button">
+                    <i class="fas fa-volume-up"></i> Mute Alerts
+                </button>
+                <button class="action-button" id="pause-button">
+                    <i class="fas fa-pause"></i> Pause Updates
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="alert-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
+
+    <script>
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        // Update every second
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+        
+        // Chart configuration
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        let riskChart;
+        let isPaused = false;
+        let isMuted = false;
+        const maxDataPoints = 30; // Show last 30 data points
+        let chartData = {
+            labels: [],
+            datasets: [{
+                label: 'Risk Level',
+                data: [],
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                backgroundColor: 'rgba(0, 91, 150, 0.1)',
+                segment: {
+                    borderColor: ctx => getLineColor(ctx.p0.parsed.y)
+                }
+            }]
+        };
+        
+        // Format time for x-axis
+        function formatTime(date) {
+            return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+        }
+        
+        // Initialize chart with empty data
+        function initChart() {
+            // Generate initial empty data points
+            const now = new Date();
+            const initialLabels = [];
+            const initialData = [];
+            
+            for (let i = maxDataPoints - 1; i >= 0; i--) {
+                const time = new Date(now.getTime() - i * 2000);
+                initialLabels.push(formatTime(time));
+                initialData.push(null);
+            }
+            
+            chartData.labels = initialLabels;
+            chartData.datasets[0].data = initialData;
+            
+            riskChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000, // Smooth animation duration
+                        easing: 'linear'
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Risk Level',
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time',
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                lowRiskLine: {
+                                    type: 'line',
+                                    yMin: 2,
+                                    yMax: 2,
+                                    borderColor: 'rgba(56, 142, 60, 0.5)',
+                                    borderWidth: 1,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: 'Low Risk Threshold',
+                                        enabled: true,
+                                        position: 'left',
+                                        backgroundColor: 'rgba(56, 142, 60, 0.7)'
+                                    }
+                                },
+                                highRiskLine: {
+                                    type: 'line',
+                                    yMin: 4,
+                                    yMax: 4,
+                                    borderColor: 'rgba(211, 47, 47, 0.5)',
+                                    borderWidth: 1,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: 'High Risk Threshold',
+                                        enabled: true,
+                                        position: 'left',
+                                        backgroundColor: 'rgba(211, 47, 47, 0.7)'
+                                    }
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Risk: ${context.parsed.y.toFixed(1)}`;
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 3,
+                            hoverRadius: 5,
+                            backgroundColor: ctx => getLineColor(ctx.raw)
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+        
+        // Get line color based on risk level
+        function getLineColor(risk) {
+            if (!risk) return 'rgba(255, 255, 255, 0.5)';
+            if (risk <= 2) return 'rgba(56, 142, 60, 1)';
+            if (risk <= 4) return 'rgba(255, 160, 0, 1)';
+            return 'rgba(211, 47, 47, 1)';
+        }
+        
+        // Check for and trigger alerts
+        function checkForAlert(risk) {
+            if (risk > 4 && !isMuted) {
+                const alertSound = document.getElementById('alert-sound');
+                alertSound.currentTime = 0;
+                alertSound.play().catch(e => console.log("Audio play failed:", e));
+            }
+        }
+
+        // Update current risk display
+        function updateCurrentRisk(risk) {
+            const riskValue = document.getElementById('current-risk-value');
+            const riskStatus = document.getElementById('current-risk-status');
+            const panel = document.querySelector('.graph-panel');
+            
+            riskValue.textContent = risk.toFixed(1);
+            
+            if (risk <= 2) {
+                riskValue.className = 'risk-value risk-normal';
+                riskStatus.className = 'risk-status status-normal';
+                riskStatus.textContent = 'LOW RISK';
+                panel.classList.remove('alert-flash');
+            } else if (risk <= 4) {
+                riskValue.className = 'risk-value risk-warning';
+                riskStatus.className = 'risk-status status-warning';
+                riskStatus.textContent = 'MODERATE RISK';
+                panel.classList.remove('alert-flash');
+            } else {
+                riskValue.className = 'risk-value risk-critical';
+                riskStatus.className = 'risk-status status-critical';
+                riskStatus.textContent = 'HIGH RISK';
+                panel.classList.add('alert-flash');
+            }
+        }
+        
+        // Update last updated time
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('last-updated').textContent = `Last updated: ${timeString}`;
+        }
+        
+        // Update chart with new data point
+        function updateChartData(newRisk) {
+            if (isPaused) return;
+            
+            const now = new Date();
+            
+            // Shift the existing data left
+            chartData.labels.shift();
+            chartData.datasets[0].data.shift();
+            
+            // Add new data point at the end
+            chartData.labels.push(formatTime(now));
+            chartData.datasets[0].data.push(newRisk);
+            
+            // Update the chart
+            riskChart.update();
+            
+            // Update current risk display
+            updateCurrentRisk(newRisk);
+            checkForAlert(newRisk);
+            updateLastUpdated();
+        }
+        
+        // Simulate live data (replace with actual API call)
+        function getSimulatedRisk() {
+            // Simulate some realistic risk patterns
+            const now = new Date();
+            const seconds = now.getSeconds();
+            
+            // Create some periodic patterns
+            let risk;
+            if (seconds < 15) {
+                risk = 1.5 + Math.sin(seconds * Math.PI / 15) * 0.5;
+            } else if (seconds < 30) {
+                risk = 2.5 + Math.sin((seconds-15) * Math.PI / 15) * 1.0;
+            } else if (seconds < 45) {
+                risk = 3.5 + Math.sin((seconds-30) * Math.PI / 15) * 1.0;
+            } else {
+                risk = 4.5 + Math.sin((seconds-45) * Math.PI / 15) * 0.5;
+            }
+            
+            // Add some random noise
+            risk += (Math.random() - 0.5) * 0.3;
+            
+            // Ensure risk stays within bounds
+            return Math.max(0, Math.min(5, risk));
+        }
+        
+        // Initialize the graph
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            
+            // Start with some initial data
+            for (let i = 0; i < maxDataPoints; i++) {
+                setTimeout(() => {
+                    updateChartData(getSimulatedRisk());
+                }, i * 2000);
+            }
+            
+            // Start live updates
+            const updateInterval = setInterval(() => {
+                updateChartData(getSimulatedRisk());
+            }, 2000);
+            
+            // Pause button functionality
+            const pauseButton = document.getElementById('pause-button');
+            pauseButton.addEventListener('click', () => {
+                isPaused = !isPaused;
+                if (isPaused) {
+                    pauseButton.innerHTML = '<i class="fas fa-play"></i> Resume Updates';
+                    pauseButton.style.backgroundColor = 'var(--medical-safe)';
+                } else {
+                    pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pause Updates';
+                    pauseButton.style.backgroundColor = 'var(--medical-blue)';
+                }
+            });
+            
+            // Mute button functionality - now with immediate response
+            const muteButton = document.getElementById('mute-button');
+            const alertSound = document.getElementById('alert-sound');
+            
+            muteButton.addEventListener('click', () => {
+                isMuted = !isMuted;
+                
+                // Stop any currently playing sound immediately
+                if (isMuted) {
+                    alertSound.pause();
+                    alertSound.currentTime = 0;
+                }
+                
+                // Update button appearance immediately
+                if (isMuted) {
+                    muteButton.innerHTML = '<i class="fas fa-volume-mute"></i> Unmute Alerts';
+                    muteButton.style.backgroundColor = 'var(--medical-alert)';
+                } else {
+                    muteButton.innerHTML = '<i class="fas fa-volume-up"></i> Mute Alerts';
+                    muteButton.style.backgroundColor = 'var(--medical-gray)';
+                }
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Space to toggle pause
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    pauseButton.click();
+                }
+                // M to toggle mute
+                if (e.code === 'KeyM') {
+                    e.preventDefault();
+                    muteButton.click();
+                }
+            });
+            
+            // Add tooltip to current risk value
+            const riskValue = document.getElementById('current-risk-value');
+            riskValue.title = '0-2: Low Risk\n2-4: Moderate Risk\n4-5: High Risk';
+            
+            // Add export functionality (simulated)
+            const exportButton = document.createElement('button');
+            exportButton.className = 'action-button secondary';
+            exportButton.innerHTML = '<i class="fas fa-download"></i> Export Data';
+            exportButton.addEventListener('click', function() {
+                alert('Data export would be implemented here. This could generate a PDF or CSV report.');
+            });
+            
+            document.querySelector('.action-panel').appendChild(exportButton);
+        });
+    </script>
+</body>
+</html>

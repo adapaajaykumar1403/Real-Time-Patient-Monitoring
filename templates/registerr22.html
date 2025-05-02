@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Registration - Step 2</title>
+    <style>
+        :root {
+            --medical-blue: #005b96;
+            --medical-light-blue: #e1f5fe;
+            --medical-alert: #d32f2f;
+            --medical-warning: #ffa000;
+            --medical-safe: #388e3c;
+            --medical-dark: #263238;
+            --medical-gray: #607d8b;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--medical-dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(0, 91, 150, 0.8);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .condition-display {
+            background-color: rgba(255, 165, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--medical-warning);
+            font-weight: bold;
+        }
+        
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--medical-light-blue);
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--medical-blue);
+            background-color: rgba(255,255,255,0.15);
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--medical-safe);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #2e7d32;
+        }
+        
+        .back-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .back-link a {
+            color: var(--medical-light-blue);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 600px) {
+            .header {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-container {
+                padding: 15px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1>PATIENT REGISTRATION - STEP 2</h1>
+        <p>Medical Parameters</p>
+    </div>
+    
+    <div class="condition-display">
+        <i class="fas fa-heartbeat"></i> Recording parameters for: 
+        {% if request.form['disease'] == 'heart' %}Cardiac Condition{% endif %}
+        {% if request.form['disease'] == 'kidney' %}Renal Condition{% endif %}
+        {% if request.form['disease'] == 'respiratory' %}Pulmonary Condition{% endif %}
+    </div>
+    
+    <form method="POST" action="/save_patient" class="form-container">
+        <!-- Hidden fields for data from step 1 -->
+        {% for key, value in request.form.items() %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+
+        {% if request.form['disease'] == 'heart' %}
+            <div class="form-section">
+                <div class="section-title">CARDIAC PARAMETERS</div>
+                <div class="form-group">
+                    <label for="blood_pressure">Blood Pressure (mmHg):</label>
+                    <input type="text" id="blood_pressure" name="blood_pressure" required placeholder="120/80">
+                </div>
+                <div class="form-group">
+                    <label for="heart_rate">Heart Rate (bpm):</label>
+                    <input type="text" id="heart_rate" name="heart_rate" required placeholder="72">
+                </div>
+                <div class="form-group">
+                    <label for="cholesterol">Cholesterol (mg/dL):</label>
+                    <input type="text" id="cholesterol" name="cholesterol" required placeholder="200">
+                </div>
+            </div>
+            
+        {% elif request.form['disease'] == 'kidney' %}
+            <div class="form-section">
+                <div class="section-title">RENAL PARAMETERS</div>
+                <div class="form-group">
+                    <label for="creatinine">Creatinine (mg/dL):</label>
+                    <input type="text" id="creatinine" name="creatinine" required placeholder="1.0">
+                </div>
+                <div class="form-group">
+                    <label for="urea">Blood Urea (mg/dL):</label>
+                    <input type="text" id="urea" name="urea" required placeholder="20">
+                </div>
+                <div class="form-group">
+                    <label for="gfr">GFR (mL/min/1.73m²):</label>
+                    <input type="text" id="gfr" name="gfr" required placeholder="90">
+                </div>
+            </div>
+            
+        {% elif request.form['disease'] == 'respiratory' %}
+            <div class="form-section">
+                <div class="section-title">PULMONARY PARAMETERS</div>
+                <div class="form-group">
+                    <label for="oxygen_saturation">O₂ Saturation (%):</label>
+                    <input type="text" id="oxygen_saturation" name="oxygen_saturation" required placeholder="98">
+                </div>
+                <div class="form-group">
+                    <label for="respiratory_rate">Respiratory Rate (breaths/min):</label>
+                    <input type="text" id="respiratory_rate" name="respiratory_rate" required placeholder="16">
+                </div>
+                <div class="form-group">
+                    <label for="co2_level">CO₂ Level (mmHg):</label>
+                    <input type="text" id="co2_level" name="co2_level" required placeholder="40">
+                </div>
+            </div>
+        {% endif %}
+
+        <button type="submit"><i class="fas fa-save"></i> Complete Registration</button>
+    </form>
+    
+    <div class="back-link">
+        <a href="/register_step1"><i class="fas fa-arrow-left"></i> Back to Step 1</a>
+    </div>
+    <!-- Add this script section before the closing </body> tag -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        
+        // Blood pressure validation
+        const bpInput = document.getElementById('blood_pressure');
+        if (bpInput) {
+            bpInput.addEventListener('input', function() {
+                if (!/^\d{2,3}\/\d{2,3}$/.test(this.value)) {
+                    this.setCustomValidity('Please enter blood pressure in format "120/80"');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        }
+        
+        // Numeric field validation
+        const numericFields = ['heart_rate', 'cholesterol', 'creatinine', 'urea', 'gfr', 
+                              'oxygen_saturation', 'respiratory_rate', 'co2_level'];
+        
+        numericFields.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', function() {
+                    if (!/^\d*\.?\d*$/.test(this.value)) {
+                        this.setCustomValidity('Please enter a valid number');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            }
+        });
+        
+        // Form submission validation
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Check all required fields are filled
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.reportValidity();
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill all required fields correctly.');
+            }
+        });
+    });
+</script>
+</body>
+</html>

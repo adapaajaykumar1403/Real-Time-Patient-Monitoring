@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Patient Monitoring</title>
+    <style>
+        :root {
+            --medical-blue: #005b96;
+            --medical-light-blue: #e1f5fe;
+            --medical-alert: #d32f2f;
+            --medical-warning: #ffa000;
+            --medical-safe: #388e3c;
+            --medical-dark: #263238;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--medical-dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: rgba(0, 91, 150, 0.8);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .button-panel {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .medical-button {
+            padding: 18px 25px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--medical-blue);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .medical-button:hover {
+            background-color: #0077b6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .medical-button i {
+            font-size: 1.3rem;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            text-align: center;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .medical-button {
+                padding: 15px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1>REAL-TIME PATIENT MONITORING</h1>
+        <p class="subtitle">Critical Care Monitoring System </p>
+    </div>
+    
+    <div class="button-panel">
+        <a href="/register_step1" class="medical-button">
+            <i class="fas fa-user-plus"></i> Register New Patient
+        </a>
+        <a href="/login" class="medical-button">
+            <i class="fas fa-sign-in-alt"></i> Patient Login
+        </a>
+        <a href="/" class="medical-button">
+            <i class="fas fa-sync-alt"></i> System Reset
+        </a>
+    </div>
+    
+    <div class="footer">
+        <p>© 2023 Medical Systems Inc. | ICU Monitoring Solution</p>
+    </div>
+</body>
+</html>
