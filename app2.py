@@ -68,13 +68,13 @@ def register_step1():
             return redirect(url_for('register_step1', error='duplicate'))
         
         # Verify nurse credentials
-        nurse_check = nurses_collection.find_one({
-            'nurse_name': form_data.get('nurse_name'),
-            'nurse_id': form_data.get('nurse_id')
-        })
+       # nurse_check = nurses_collection.find_one({
+        #    'nurse_name': form_data.get('nurse_name'),
+         #   'nurse_id': form_data.get('nurse_id')
+        #})
 
         if not nurse_check:
-            return redirect(url_for('register_step1', error='nurse'))
+            return redirect(url_for('register_step1', error='nurse'))*/
 
         patient_id = generate_patient_id()
         form_data['_id'] = patient_id
