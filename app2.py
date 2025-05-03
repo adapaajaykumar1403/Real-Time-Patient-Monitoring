@@ -73,8 +73,8 @@ def register_step1():
          #   'nurse_id': form_data.get('nurse_id')
         #})
 
-        if not nurse_check:
-            return redirect(url_for('register_step1', error='nurse'))*/
+       # if not nurse_check:
+       #     return redirect(url_for('register_step1', error='nurse'))*/
 
         patient_id = generate_patient_id()
         form_data['_id'] = patient_id
